@@ -56,10 +56,9 @@ public class SubscribeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        EditText etTopic = view.findViewById(R.id.et_sub_topic);
+        final EditText etTopic = view.findViewById(R.id.et_sub_topic);
         final RadioGroup rgQos = view.findViewById(R.id.rg_qos);
 
-        final String topic = etTopic.getText().toString();
         view.findViewById(R.id.title_back)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -82,10 +81,12 @@ public class SubscribeFragment extends Fragment {
                         } else {
                             qos = 2;
                         }
+                        final String topic = etTopic.getText().toString();
                         if (TextUtils.isEmpty(topic)) {
                             ToastUtils.show(requireContext(), "话题不能为空");
                         } else {
                             MqttAndroidClient mqttClient = DataRepository.getMqttClient(requireContext());
+
                             try {
                                 IMqttToken iMqttToken = mqttClient.subscribe(topic, qos);
                                 iMqttToken.setActionCallback(new IMqttActionListener() {
@@ -105,7 +106,7 @@ public class SubscribeFragment extends Fragment {
                                 e.printStackTrace();
                                 ToastUtils.show(requireContext(), "订阅话题: " + topic + " 失败了!");
                             }
-                            NavUtils.closeFragment(requireActivity(), get());
+                            NavUtils.forwardFragment(requireActivity(),MeFragment.newInstance(),null);
                         }
                     }
                 });

@@ -133,6 +133,7 @@ public class MeFragment extends Fragment {
                 public void messageArrived(String topic, MqttMessage message) {
                     LogUtils.e(topic);
                     LogUtils.v(message);
+                    LogUtils.e("完成消息：%s", message);
                 }
 
                 @Override
