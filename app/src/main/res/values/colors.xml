@@ -3,4 +3,18 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="transparent">#0000</color>
+
+    <color name="black">#000</color>
+    <color name="white">#fff</color>
+
+    <color name="light">#ddd</color>
+    <color name="light_red">#faa</color>
+    <color name="light_blue">#afa</color>
+    <color name="light_green">#aaf</color>
+    <color name="light_gray">#ccc</color>
+    <color name="light_gray2">#ddd</color>
+    <color name="light_gray3">#eee</color>
+    <color name="dark_gray">#999</color>
+    <color name="deep_gray">#444</color>
 </resources>
