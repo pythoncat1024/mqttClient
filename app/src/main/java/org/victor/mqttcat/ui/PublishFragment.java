@@ -76,7 +76,7 @@ public class PublishFragment extends Fragment {
             }
         });
         final EditText etTopic = view.findViewById(R.id.et_pub_topic);
-       final EditText etContent = view.findViewById(R.id.et_pub_content);
+        final EditText etContent = view.findViewById(R.id.et_pub_content);
         view.findViewById(R.id.title_back)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -110,13 +110,25 @@ public class PublishFragment extends Fragment {
                                 qos = 2;
                             }
                             try {
-                                mqttClient.publish(topic, content.getBytes(), qos, retained);
-                                ToastUtils.show(requireContext(), "发布成功了");
+                                IMqttDeliveryToken token = mqttClient.publish(topic, content.getBytes(), qos, retained);
+                                token.setActionCallback(new IMqttActionListener() {
+                                    @Override
+                                    public void onSuccess(IMqttToken asyncActionToken) {
+                                        ToastUtils.show(requireContext(), "发布成功了");
+                                    }
+
+                                    @Override
+                                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                                        ToastUtils.show(requireContext(), "发布失败了");
+                                        LogUtils.e(exception);
+                                    }
+                                });
+
                             } catch (MqttException e) {
                                 e.printStackTrace();
                                 ToastUtils.show(requireContext(), "发布失败了");
                             }
-                            NavUtils.forwardFragment(requireActivity(), MeFragment.newInstance(),null);
+                            NavUtils.forwardFragment(requireActivity(), MeFragment.newInstance(), null);
                         }
                     }
                 });

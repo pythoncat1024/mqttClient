@@ -14,7 +14,11 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 
+import com.apkfuns.logutils.LogUtils;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.IMqttActionListener;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.victor.mqttcat.R;
 import org.victor.mqttcat.model.DataRepository;
@@ -83,8 +87,20 @@ public class SubscribeFragment extends Fragment {
                         } else {
                             MqttAndroidClient mqttClient = DataRepository.getMqttClient(requireContext());
                             try {
-                                mqttClient.subscribe(topic, qos);
-                                ToastUtils.show(requireContext(), "订阅话题: " + topic + " 成功了!");
+                                IMqttToken iMqttToken = mqttClient.subscribe(topic, qos);
+                                iMqttToken.setActionCallback(new IMqttActionListener() {
+                                    @Override
+                                    public void onSuccess(IMqttToken asyncActionToken) {
+                                        ToastUtils.show(requireContext(), "订阅话题: " + topic + " 成功了!");
+                                    }
+
+                                    @Override
+                                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                                        ToastUtils.show(requireContext(), "订阅话题: " + topic + " 失败了!");
+                                        LogUtils.e(exception);
+                                    }
+                                });
+
                             } catch (MqttException e) {
                                 e.printStackTrace();
                                 ToastUtils.show(requireContext(), "订阅话题: " + topic + " 失败了!");
