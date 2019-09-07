@@ -5,10 +5,18 @@
     android:layout_height="match_parent"
     tools:context=".ui.DashFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <TextView
+        android:id="@+id/connect_tv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="dash" />
+        android:gravity="center"
+        android:text="@string/connect_status_no"
+        android:textSize="24sp" />
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_received"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
 </FrameLayout>
