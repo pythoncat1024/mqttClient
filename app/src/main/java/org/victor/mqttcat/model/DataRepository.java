@@ -44,6 +44,11 @@ public class DataRepository {
         return mClient;
     }
 
+    @Nullable
+    public static MqttAndroidClient cachedClient(){
+        return mClient;
+    }
+
     public static synchronized MqttAndroidClient resetMqttClient(Context context,
                                                                  String serverUri,
                                                                  String clientID) {

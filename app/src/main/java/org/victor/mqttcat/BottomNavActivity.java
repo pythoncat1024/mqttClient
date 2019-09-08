@@ -16,6 +16,9 @@ import androidx.fragment.app.Fragment;
 import com.apkfuns.logutils.LogUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.victor.mqttcat.model.DataRepository;
 import org.victor.mqttcat.ui.DashFragment;
 import org.victor.mqttcat.ui.HomeFragment;
 import org.victor.mqttcat.ui.MeFragment;
@@ -70,5 +73,23 @@ public class BottomNavActivity extends AppCompatActivity {
                 .replace(resID, fragment)
                 .commit();
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        MqttAndroidClient mqttClient = DataRepository.cachedClient();
+        if (mqttClient != null && mqttClient.isConnected()) {
+            // 在 client.connect 的时候，会 bind service
+            mqttClient.unregisterResources();
+            // 调用 unregisterResources 会去 unbind service
+            try {
+                LogUtils.e("disconnect...");
+                mqttClient.disconnect();
+            } catch (MqttException e) {
+                e.printStackTrace();
+            }
+        }
+
+        super.onBackPressed();
     }
 }
