@@ -1,17 +1,15 @@
 package org.victor.mqttcat.ui;
 
 
-import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.apkfuns.logutils.LogUtils;
 
@@ -32,7 +30,7 @@ import org.victor.mqttcat.utils.ToastUtils;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class MeFragment extends Fragment {
+public class MeFragment extends Fragment implements FragmentBack {
 
 
     private TextView tvConnectState;
@@ -45,6 +43,7 @@ public class MeFragment extends Fragment {
     private String clientID;
     private String serverIP;
     private MqttAndroidClient mqttClient;
+    private IMqttToken connect;
 
     public MeFragment() {
         // Required empty public constructor
@@ -143,11 +142,9 @@ public class MeFragment extends Fragment {
                 }
             });
         }
-        tvClientID.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavUtils.forwardFragment(requireActivity(), ConnectSettingsFragment.newInstance(), null);
-            }
+        tvClientID.setOnClickListener(v -> {
+            LogUtils.w("jump--");
+            NavUtils.forwardFragment(requireActivity(), ConnectSettingsFragment.newInstance(), null);
         });
         tvConnectState.setOnClickListener(v -> {
             tvConnectState.setEnabled(false);
@@ -155,14 +152,12 @@ public class MeFragment extends Fragment {
             LogUtils.e("0 server:%s, client:%s", serverIP, clientID);
             mqttClient = DataRepository.getMqttClient(requireContext());
             LogUtils.e("1 server:%s, client:%s", serverIP, clientID);
-            IMqttToken connect = null;
-
+            if (mqttClient.isConnected()) {
+                LogUtils.e("之前的连接未关闭，不必创建");
+                // 如果多次连接，会导致同一个 topic 被多次收到！
+                return;
+            }
             try {
-                if (mqttClient.isConnected()) {
-                    LogUtils.e("之前的连接未关闭，不必创建");
-                    // 如果多次连接，会导致同一个 topic 被多次收到！
-                    return;
-                }
                 connect = mqttClient.connect();
                 connect.setActionCallback(new IMqttActionListener() {
                     @Override
@@ -188,24 +183,8 @@ public class MeFragment extends Fragment {
                 LogUtils.e(e);
             } catch (NullPointerException e) {
                 LogUtils.w(e);
-                if (connect != null) {
-                    connect.setActionCallback(new IMqttActionListener() {
-                        @Override
-                        public void onSuccess(IMqttToken asyncActionToken) {
-                            LogUtils.e("2 server:%s, client:%s", serverIP, clientID);
-                            ToastUtils.show(requireContext(), "连接成功");
-                            App.setMqttConnected(true);
-                            tvConnectState.setText(R.string.connect_status_yes);
-                        }
-
-                        @Override
-                        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                            ToastUtils.show(requireContext(), "连接失败");
-                            tvConnectState.setText(R.string.connect_status_no);
-                            LogUtils.e(exception);
-                        }
-                    });
-                }
+                ToastUtils.show(requireContext(), " 连接 异常");
+                System.exit(1);
             }
             tvConnectState.setEnabled(true);
             tvPublish.setEnabled(true);
@@ -213,16 +192,23 @@ public class MeFragment extends Fragment {
         });
         tvPublish.setOnClickListener(v -> {
             tvPublish.setEnabled(false);
+            LogUtils.w("jump--");
             NavUtils.forwardFragment(requireActivity(), PublishFragment.newInstance(), null);
             tvPublish.setEnabled(true);
         });
 
         tvSubscribe.setOnClickListener(v -> {
             tvSubscribe.setEnabled(false);
+            LogUtils.w("jump--");
             NavUtils.forwardFragment(requireActivity(), SubscribeFragment.newInstance(), null);
             tvSubscribe.setEnabled(true);
         });
     }
 
 
+    @Override
+    public void onBackPressed() {
+        DataRepository.disconnect();
+        requireActivity().finish();
+    }
 }

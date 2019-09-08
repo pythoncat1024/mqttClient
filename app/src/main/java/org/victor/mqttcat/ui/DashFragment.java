@@ -2,16 +2,15 @@ package org.victor.mqttcat.ui;
 
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.apkfuns.logutils.LogUtils;
 
@@ -28,7 +27,7 @@ import org.victor.mqttcat.utils.ToastUtils;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DashFragment extends Fragment {
+public class DashFragment extends Fragment implements FragmentBack{
 
 
     private RecyclerView rvReceived;
@@ -105,5 +104,11 @@ public class DashFragment extends Fragment {
             rvReceived.setVisibility(View.GONE);
             connectStateV.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        DataRepository.disconnect();
+        requireActivity().finish();
     }
 }

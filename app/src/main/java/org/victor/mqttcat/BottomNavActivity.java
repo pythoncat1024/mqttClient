@@ -1,7 +1,5 @@
 package org.victor.mqttcat;
 
-import android.app.AlarmManager;
-import android.app.Service;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,10 +14,8 @@ import androidx.fragment.app.Fragment;
 import com.apkfuns.logutils.LogUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.victor.mqttcat.model.DataRepository;
 import org.victor.mqttcat.ui.DashFragment;
+import org.victor.mqttcat.ui.FragmentBack;
 import org.victor.mqttcat.ui.HomeFragment;
 import org.victor.mqttcat.ui.MeFragment;
 
@@ -61,9 +57,6 @@ public class BottomNavActivity extends AppCompatActivity {
     }
 
     private void initPermissions() {
-        AlarmManager alarmManager = (AlarmManager)
-                this.getSystemService(Service.ALARM_SERVICE);
-        LogUtils.e(alarmManager);
     }
 
     private void replaceFragment(@SuppressWarnings("SameParameterValue") @IdRes int resID,
@@ -72,24 +65,17 @@ public class BottomNavActivity extends AppCompatActivity {
                 .beginTransaction()
                 .replace(resID, fragment)
                 .commit();
-
     }
 
     @Override
     public void onBackPressed() {
-        MqttAndroidClient mqttClient = DataRepository.cachedClient();
-        if (mqttClient != null && mqttClient.isConnected()) {
-            // 在 client.connect 的时候，会 bind service
-            mqttClient.unregisterResources();
-            // 调用 unregisterResources 会去 unbind service
-            try {
-                LogUtils.e("disconnect...");
-                mqttClient.disconnect();
-            } catch (MqttException e) {
-                e.printStackTrace();
-            }
+        int fragmentContainer = R.id.nav_fragment_container;
+        Fragment fragment = getSupportFragmentManager().findFragmentById(fragmentContainer);
+        if (fragment instanceof FragmentBack) {
+            ((FragmentBack) fragment).onBackPressed();
+            LogUtils.w("fragment -= " + fragment.getClass().getSimpleName());
+            return;
         }
-
         super.onBackPressed();
     }
 }

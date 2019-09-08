@@ -2,11 +2,6 @@ package org.victor.mqttcat.ui;
 
 
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,17 +11,18 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 import com.apkfuns.logutils.LogUtils;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.android.service.MqttTraceHandler;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.victor.mqttcat.R;
 import org.victor.mqttcat.model.DataRepository;
 import org.victor.mqttcat.utils.NavUtils;
@@ -35,7 +31,7 @@ import org.victor.mqttcat.utils.ToastUtils;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class PublishFragment extends Fragment {
+public class PublishFragment extends Fragment implements FragmentBack {
 
 
     public PublishFragment() {
@@ -78,57 +74,50 @@ public class PublishFragment extends Fragment {
         final EditText etTopic = view.findViewById(R.id.et_pub_topic);
         final EditText etContent = view.findViewById(R.id.et_pub_content);
         view.findViewById(R.id.title_back)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        requireActivity().onBackPressed();
-                    }
-                });
+                .setOnClickListener(v -> onBackPressed());
 
         view.findViewById(R.id.title_done)
-                .setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                .setOnClickListener(v -> {
 
-                        final String topic = etTopic.getText().toString();
-                        final String content = etContent.getText().toString();
-                        LogUtils.e("topic=%s,content=%s", topic, content);
+                    final String topic = etTopic.getText().toString();
+                    final String content = etContent.getText().toString();
+                    LogUtils.e("topic=%s,content=%s", topic, content);
 
-                        if (TextUtils.isEmpty(topic) || TextUtils.isEmpty(content)) {
-                            ToastUtils.show(requireContext(), "话题及内容不能为空");
+                    if (TextUtils.isEmpty(topic) || TextUtils.isEmpty(content)) {
+                        ToastUtils.show(requireContext(), "话题及内容不能为空");
+                    } else {
+
+                        MqttAndroidClient mqttClient = DataRepository.getMqttClient(requireContext());
+                        boolean retained = cbRetained.isChecked();
+                        int qos;
+                        int buttonId = rgQos.getCheckedRadioButtonId();
+                        if (buttonId == R.id.rb_qos0) {
+                            qos = 0;
+                        } else if (buttonId == R.id.rb_qos1) {
+                            qos = 1;
                         } else {
+                            qos = 2;
+                        }
+                        try {
+                            IMqttDeliveryToken token = mqttClient.publish(topic, content.getBytes(), qos, retained);
+                            token.setActionCallback(new IMqttActionListener() {
+                                @Override
+                                public void onSuccess(IMqttToken asyncActionToken) {
+                                    ToastUtils.show(requireContext(), "发布成功了");
+                                    onBackPressed();
+                                }
 
-                            MqttAndroidClient mqttClient = DataRepository.getMqttClient(requireContext());
-                            boolean retained = cbRetained.isChecked();
-                            int qos;
-                            int buttonId = rgQos.getCheckedRadioButtonId();
-                            if (buttonId == R.id.rb_qos0) {
-                                qos = 0;
-                            } else if (buttonId == R.id.rb_qos1) {
-                                qos = 1;
-                            } else {
-                                qos = 2;
-                            }
-                            try {
-                                IMqttDeliveryToken token = mqttClient.publish(topic, content.getBytes(), qos, retained);
-                                token.setActionCallback(new IMqttActionListener() {
-                                    @Override
-                                    public void onSuccess(IMqttToken asyncActionToken) {
-                                        ToastUtils.show(requireContext(), "发布成功了");
-                                    }
+                                @Override
+                                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                                    ToastUtils.show(requireContext(), "发布失败了");
+                                    LogUtils.e(exception);
+                                    onBackPressed();
+                                }
+                            });
 
-                                    @Override
-                                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                                        ToastUtils.show(requireContext(), "发布失败了");
-                                        LogUtils.e(exception);
-                                    }
-                                });
-
-                            } catch (MqttException e) {
-                                e.printStackTrace();
-                                ToastUtils.show(requireContext(), "发布失败了");
-                            }
-                            NavUtils.forwardFragment(requireActivity(), MeFragment.newInstance(), null);
+                        } catch (MqttException e) {
+                            e.printStackTrace();
+                            ToastUtils.show(requireContext(), "发布失败了");
                         }
                     }
                 });
@@ -138,5 +127,16 @@ public class PublishFragment extends Fragment {
 
     private Fragment get() {
         return this;
+    }
+
+    @Override
+    public void onBackPressed() {
+        LogUtils.e("back..");
+        FragmentActivity context = getActivity();
+        if (context == null) {
+            LogUtils.e("context== null");
+        } else {
+            NavUtils.closeFragment(context, MeFragment.newInstance());
+        }
     }
 }
