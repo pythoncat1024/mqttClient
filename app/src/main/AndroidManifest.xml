@@ -20,8 +20,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity
-            android:name=".BottomNavActivity">
+
+        <activity android:name=".BottomNavActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

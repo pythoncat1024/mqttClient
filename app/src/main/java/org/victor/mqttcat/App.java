@@ -3,6 +3,7 @@ package org.victor.mqttcat;
 import android.app.Application;
 
 import com.apkfuns.logutils.LogUtils;
+import com.facebook.stetho.Stetho;
 
 public class App extends Application {
 
@@ -10,6 +11,7 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         LogUtils.getLogConfig().configShowBorders(false);
+        Stetho.initializeWithDefaults(this);
     }
 
     private static boolean isMqttConnected;

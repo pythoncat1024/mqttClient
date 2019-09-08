@@ -1,6 +1,7 @@
 package org.victor.mqttcat.ui;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -148,14 +149,46 @@ public class MeFragment extends Fragment {
                 NavUtils.forwardFragment(requireActivity(), ConnectSettingsFragment.newInstance(), null);
             }
         });
-        tvConnectState.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tvConnectState.setEnabled(false);
+        tvConnectState.setOnClickListener(v -> {
+            tvConnectState.setEnabled(false);
 
-                mqttClient = DataRepository.getMqttClient(requireContext());
-                try {
-                    IMqttToken connect = mqttClient.connect();
+            LogUtils.e("0 server:%s, client:%s", serverIP, clientID);
+            mqttClient = DataRepository.getMqttClient(requireContext());
+            LogUtils.e("1 server:%s, client:%s", serverIP, clientID);
+            IMqttToken connect = null;
+
+            try {
+                if (mqttClient.isConnected()) {
+                    LogUtils.e("之前的连接未关闭，不必创建");
+                    // 如果多次连接，会导致同一个 topic 被多次收到！
+                    return;
+                }
+                connect = mqttClient.connect();
+                connect.setActionCallback(new IMqttActionListener() {
+                    @Override
+                    public void onSuccess(IMqttToken asyncActionToken) {
+                        LogUtils.e("2 server:%s, client:%s", serverIP, clientID);
+                        ToastUtils.show(requireContext(), "连接成功");
+                        App.setMqttConnected(true);
+                        tvConnectState.setText(R.string.connect_status_yes);
+
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+                        ToastUtils.show(requireContext(), "连接失败");
+                        tvConnectState.setText(R.string.connect_status_no);
+                        LogUtils.e(exception);
+                    }
+                });
+            } catch (MqttException e) {
+                ToastUtils.show(requireContext(), "连接失败");
+                tvConnectState.setText(R.string.connect_status_no);
+                e.printStackTrace();
+                LogUtils.e(e);
+            } catch (NullPointerException e) {
+                LogUtils.w(e);
+                if (connect != null) {
                     connect.setActionCallback(new IMqttActionListener() {
                         @Override
                         public void onSuccess(IMqttToken asyncActionToken) {
@@ -172,32 +205,22 @@ public class MeFragment extends Fragment {
                             LogUtils.e(exception);
                         }
                     });
-                } catch (MqttException e) {
-                    ToastUtils.show(requireContext(), "连接失败");
-                    tvConnectState.setText(R.string.connect_status_no);
-                    e.printStackTrace();
                 }
-                tvConnectState.setEnabled(true);
-                tvPublish.setEnabled(true);
-                tvSubscribe.setEnabled(true);
             }
+            tvConnectState.setEnabled(true);
+            tvPublish.setEnabled(true);
+            tvSubscribe.setEnabled(true);
         });
-        tvPublish.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tvPublish.setEnabled(false);
-                NavUtils.forwardFragment(requireActivity(), PublishFragment.newInstance(), null);
-                tvPublish.setEnabled(true);
-            }
+        tvPublish.setOnClickListener(v -> {
+            tvPublish.setEnabled(false);
+            NavUtils.forwardFragment(requireActivity(), PublishFragment.newInstance(), null);
+            tvPublish.setEnabled(true);
         });
 
-        tvSubscribe.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                tvSubscribe.setEnabled(false);
-                NavUtils.forwardFragment(requireActivity(), SubscribeFragment.newInstance(), null);
-                tvSubscribe.setEnabled(true);
-            }
+        tvSubscribe.setOnClickListener(v -> {
+            tvSubscribe.setEnabled(false);
+            NavUtils.forwardFragment(requireActivity(), SubscribeFragment.newInstance(), null);
+            tvSubscribe.setEnabled(true);
         });
     }
 

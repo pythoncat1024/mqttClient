@@ -18,6 +18,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
+    }
 }
 repositories {
     maven {
@@ -44,4 +48,9 @@ dependencies {
     }
     // log
     implementation 'com.apkfuns.logutils:library:1.7.5'
+
+    implementation 'com.facebook.stetho:stetho:1.5.1'
+
+
+    implementation 'com.yanzhenjie.permission:x:2.0.1'
 }

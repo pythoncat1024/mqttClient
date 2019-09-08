@@ -1,5 +1,7 @@
 package org.victor.mqttcat;
 
+import android.app.AlarmManager;
+import android.app.Service;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 
+import com.apkfuns.logutils.LogUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import org.victor.mqttcat.ui.DashFragment;
@@ -23,6 +26,8 @@ public class BottomNavActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bottom_nav);
+        LogUtils.e("on--create");
+        initPermissions();
         BottomNavigationView navView = findViewById(R.id.nav_view);
         CardView connectStateV = findViewById(R.id.connect_state);
         TextView tvConnectState = findViewById(R.id.connect_state_tv);
@@ -50,6 +55,12 @@ public class BottomNavActivity extends AppCompatActivity {
 
         // show default ui
         replaceFragment(containerID, HomeFragment.newInstance());
+    }
+
+    private void initPermissions() {
+        AlarmManager alarmManager = (AlarmManager)
+                this.getSystemService(Service.ALARM_SERVICE);
+        LogUtils.e(alarmManager);
     }
 
     private void replaceFragment(@SuppressWarnings("SameParameterValue") @IdRes int resID,
